@@ -14,6 +14,7 @@
       "name": "backend",
       "dependencies": {
         "@types/express": "^5.0.6",
+        "axios": "^1.17.0",
         "express": "^5.2.1",
         "zod": "^4.4.3",
       },
