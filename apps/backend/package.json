@@ -22,6 +22,7 @@
     "express": "^5.2.1",
     "https-proxy-agent": "^9.1.0",
     "pg": "^8.21.0",
+    "react-router": "^7.17.0",
     "zod": "^4.4.3"
   }
 }

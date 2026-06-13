@@ -4,9 +4,13 @@ import { Input } from "../components/ui/input";
 import { toast } from "sonner";
 import axios from "axios";
 import { BACKEND_URL } from "@/lib/config";
+import { useNavigate } from "react-router";
 
 export function Form() {
   const [github, setGithub] = useState("");
+  const  [loading, setLoading] = useState(false)
+  const navigate = useNavigate();
+
 
  async function onSubmit() {
     if (!github) {
@@ -14,9 +18,13 @@ export function Form() {
       return;
     }
 
-    await axios.post(`${BACKEND_URL}/api/v1/pre-interview`,{
+    setLoading(true);
+
+    const res = await axios.post(`${BACKEND_URL}/api/v1/pre-interview`,{
         github
     })
+
+    navigate(`/interview/${res.data.id}`)
   }
 
   return (
@@ -32,7 +40,7 @@ export function Form() {
           />
         </div>
         <div className="flex justify-center p-4">
-          <Button onClick={onSubmit}>Start Interview</Button>
+          <Button disabled={loading} onClick={onSubmit}>{loading ? "Starting Interview..." : " Start Interview "}</Button>
         </div>
       </div>
     </div>
