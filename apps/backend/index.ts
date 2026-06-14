@@ -3,10 +3,12 @@ import { PreInterviewBody } from "./types";
 import { scrapeGithub } from "./scrapers/github";
 import cors from "cors";
 import { prisma } from "./db";
+import { ai } from "./gemini";
 
 const app = express();
 app.use(express.json());
 app.use(cors());
+app.use(express.text({ type: ["application/sdp", "text/plain"]}))
 
 app.post("/api/v1/pre-interview", async (req, res) => {
   const { success, data } = PreInterviewBody.safeParse(req.body);
@@ -15,6 +17,7 @@ app.post("/api/v1/pre-interview", async (req, res) => {
     return res.status(411).json({
       message: "Incorrect body",
     });
+    return
   }
 
   const githubUrl = data.github.endsWith("/")
@@ -43,11 +46,37 @@ app.post("/api/v1/pre-interview", async (req, res) => {
         message: "GitHub user not found",
       });
     }
+}
+})
 
-    return res.status(500).json({
-      message: "Something went wrong",
+    app.post("/api/v1/session", async (req, res) => {
+    
+    const sessionConfig = JSON.stringify({
+        type: "realtime",
+        model: "gpt-realtime",
+        audio: { output: { voice: "marin" } },
     });
-  }
+
+        const fd = new FormData();
+    fd.set("sdp", req.body);
+    fd.set("session", sessionConfig);
+  
+    try {
+      const r = await fetch("https://api.openai.com/v1/realtime/calls", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${process.env.OPENAI_KEY}`,
+          "OpenAI-Safety-Identifier": "hashed-user-id",
+        },
+        body: fd,
+      });
+
+      const sdp = await r.text();
+      res.send(sdp);
+    } catch (error) {
+        console.error("Token generation error:", error);
+        res.status(500).json({ error: "Faild to generate token" });
+    }
 });
 
 app.listen(3001, () => {
